@@ -1,0 +1,4 @@
+Feuille;;Plage de donnees;;colonne date Facture;;colonne du libelle;;colonne du montant;;colonne du nom du club;;colonne de la date de Paiement;;colonne du numero de cheque;;colonne de la date de comptabilisation;;
+VIR;;Virements!B4:N;;I;;G;;E;;B;;L;;D;;M;;
+CB;;Carte bancaire!B4:N;;I;;G;;E;;B;;L;;D;;M;;
+CHQ;;Cheques!B4:N;;I;;G;;E;;B;;L;;D;;M;;

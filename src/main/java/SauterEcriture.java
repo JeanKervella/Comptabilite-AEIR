@@ -25,7 +25,8 @@ public class SauterEcriture implements ActionListener {
 					try {
 						SheetsQuickstart.createText();
 					} catch (IOException exception) {
-						System.out.println("merde y'a une erreur mais je sais pas ou - IOException");
+						JOptionPane jop = new JOptionPane();
+						jop.showMessageDialog(null, exception.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
 					} 
 				}
 

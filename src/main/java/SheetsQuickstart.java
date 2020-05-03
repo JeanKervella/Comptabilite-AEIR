@@ -2,8 +2,11 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.HeadlessException;
@@ -48,12 +51,8 @@ public class SheetsQuickstart {
 	// ATTRIBUTS
 	public static JFrame frame = new JFrame("Logiciel de Comptabilite AEIR"); // fenetre du logiciel
 	public static JPanel container = new JPanel(); // represente le contenu de l'ecran
-	public static List<JTextField> jtfs = new ArrayList<JTextField>(); // liste de tous les boutons ou l'on peut ecrire
-																		// du texte
-	public static List<JComboBox> combos = new ArrayList<JComboBox>(); // liste de tous ceux ou on a une liste
-																		// deroulante
+	public static List<JComponent> components = new ArrayList<JComponent>(); // liste de tous les boutons, textfields...
 	public static List<JLabel> labels = new ArrayList<JLabel>(); // liste de tous les noms des boutons
-	public static List<JButton> boutons = new ArrayList<JButton>(); // liste de tous les boutons classiques
 	public static JTable tabAffiche; // tableau "graphique" reprenant les valeurs sur le Drive, utile pour changer la
 										// taille des cellule ou changer la police
 	public static String[][] tab; // tableau de string reprenant les valeurs du Drive
@@ -75,6 +74,8 @@ public class SheetsQuickstart {
 			}
 		}
 	});
+	public static String[][] sheetsRange; // 1ere ligne pour les VIR, 2eme ligne pour la CB, 3eme ligne pour les CHQ
+	public static int[][] sheetsColumn; // 1ere ligne pour les VIR, 2eme ligne pour la CB, 3eme ligne pour les CHQ
 	// ATTRIBUTS
 
 	// toString()
@@ -119,32 +120,230 @@ public class SheetsQuickstart {
 	 * correspondante et de l'ajouter au container
 	 * 
 	 * @param name   nom du bouton
-	 * @param type   "combo", "jtf", "button" sont les seuls champs acceptes
+	 * @param type   "combo", "jtf", "button", "label", "dynamic", "nothing" sont
+	 *               les seuls champs acceptes "nothing" sera utilise pour ne pas
+	 *               affiche le textfield "numero de cheque" si l'on est en virement
+	 *               ou en cb, ouais c'est la meilleure solution que j'ai trouve et
+	 *               alors ?
 	 * @param x      l'abscisse du coin en haut a gauche du bouton
 	 * @param y      l'ordonnee du coin en haut a gauche du bouton
 	 * @param width  la largeur du bouton
 	 * @param height la hauteur du bouton
 	 */
 	public static void addBouton(String name, String type, int x, int y, int width, int height) {
-		if (type.equals("combo")) { // TODO use this method
-			JComboBox temp = new JComboBox();
-			temp.setBounds(x, y, width, height);
-			combos.add(temp);
-			container.add(temp);
+		JComponent temp;
+		if (type.equals("combo")) {
+			temp = new JComboBox();
 		} else if (type.equals("jtf")) {
-			JTextField temp = new JTextField();
-			temp.setBounds(x, y, width, height);
-			JLabel temp2 = new JLabel(name);
-			temp.add(temp2);
-			labels.add(temp2);
-			jtfs.add(temp);
-			container.add(temp);
+			temp = new JTextField();
 		} else if (type.equals("button")) {
-			JButton temp = new JButton(name);
-			temp.setBounds(x, y, width, height);
-			boutons.add(temp);
-			container.add(temp);
+			temp = new JButton(name);
+		} else if (type.equals("label")) {
+			temp = new JLabel(name);
+		} else if (type.equals("dynamic")) {
+			temp = new DynamicList();
+			height = 137;
+		} else if (type.equals("nothing")) {
+			temp = new JSeparator(); // au moins jsuis sur de pas utiliser de JSeparator en vrai donc ca posera pas
+										// de probleme
+			components.add(temp);
+			return;
+		} else {
+			System.err.println("\n\nLe type de bouton indique n'es pas valable\n\n");
+			return;
 		}
+		temp.setBounds(x, y, width, height);
+		if (type.equals("label")) {
+			labels.add((JLabel) temp);
+		} else
+			components.add(temp);
+		container.add(temp);
+	}
+
+	public static boolean selectedCorrect() {
+		DynamicList temp = new DynamicList();
+		JTextField temp2 = new JTextField();
+		JSeparator temp3 = new JSeparator();
+
+		for (int i = 0; i < components.size(); i++) {
+			boolean test = false;
+
+			// Verifie que si le champ "numero de cheque" n'est pas affiche le mode de
+			// paiemet selectionne n'est pas "CHQ"
+			if (components.get(11).getClass().equals(temp3.getClass())
+					&& ((JComboBox) components.get(10)).getSelectedItem().equals("CHQ")) {
+				JOptionPane PromptResult = new JOptionPane();
+				PromptResult.showMessageDialog(null,
+						"Vous ne pouvez pas sélectionner \"CHQ\" comme mode de paiement.\nIl faudrait le numero de cheque avec",
+						"Erreur mode de Paiement", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+
+			// Verifie que si le composant est une DynamicList le texte selectionne soit
+			// bien dans la liste
+			if (components.get(i).getClass().equals(temp.getClass())) {
+				for (int j = 0; j < ((DynamicList) components.get(i)).getItemCount(); j++) {
+					if (((DynamicList) components.get(i)).getItemAt(j)
+							.equals(((DynamicList) components.get(i)).getSelectedItem()))
+						test = true;
+				}
+				if (!test) {
+					String ObjButtons[] = { "Yes", "No" };
+					int PromptResult = JOptionPane.showOptionDialog(null, // TODO ouvrir une autre fenetre pour creer le
+																			// nvx compte
+							"Il y a au moins un des champs de liste deroulante ou l'item selectionne n'est pas dans la liste.\n Voulez-vous vraiment continuer ?\nLe logiciel Sage creera un nouveau compte/nouveau journal",
+							"Confirmation de changement d'ecriture", JOptionPane.DEFAULT_OPTION,
+							JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
+					if (PromptResult != JOptionPane.YES_OPTION) {
+						return false;
+					}
+				}
+			}
+			test = false;
+
+			// Verifie tous les JTextField
+			if (components.get(i).getClass().equals(temp2.getClass())) {
+
+				// Verifie le format des dates
+				if (i == 1 || i == 8) {
+					try {
+						if (!((JTextField) components.get(i)).getText(10, 1).equals("\n"))
+							test = true;
+					} catch (BadLocationException e1) {
+
+					}
+					try {
+						Integer.parseInt(((JTextField) components.get(i)).getText(0, 2));
+						Integer.parseInt(((JTextField) components.get(i)).getText(3, 2));
+						Integer.parseInt(((JTextField) components.get(i)).getText(6, 4));
+						if (!((JTextField) components.get(i)).getText(2, 1).equals("/"))
+							test = true;
+						if (!((JTextField) components.get(i)).getText(5, 1).equals("/"))
+							test = true;
+					} catch (BadLocationException e1) {
+						test = true;
+					} catch (NumberFormatException e1) {
+						test = true;
+					}
+					if (test) {
+						JOptionPane PromptResult = new JOptionPane();
+						PromptResult.showMessageDialog(null,
+								"Au moins une des dates est mal ecrite\nLe format est \"jj/mm/yyyy\"",
+								"Erreur format date", JOptionPane.ERROR_MESSAGE);
+						return false;
+					}
+				} else if (((JTextField) components.get(i)).getText().equals("")) {
+					JOptionPane PromptResul = new JOptionPane();
+					PromptResul.showMessageDialog(null, "Au moins un des champs a remplir est vide",
+							"Erreur champs a remplir", JOptionPane.ERROR_MESSAGE);
+					return false;
+				}
+			}
+		}
+		return true;
+
+	}
+
+	public static void updateSheetsRange() {
+		List<List<Object>> sheetTemp = new ArrayList();
+		try {
+			sheetTemp = SheetsQuickstart.getData("sheetsRange");
+		} catch (IOException e) {
+			JOptionPane jop = new JOptionPane();
+			jop.showMessageDialog(null, e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
+		}
+		sheetsRange = new String[3][2];
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 2; j++) {
+				sheetsRange[i][j] = (String) sheetTemp.get(i + 1).get(j);
+			}
+		}
+	}
+
+	public static void updateSheetsColumn() {
+		List<List<Object>> sheetTemp = new ArrayList();
+		try {
+			sheetTemp = SheetsQuickstart.getData("sheetsRange");
+		} catch (IOException e) {
+			JOptionPane jop = new JOptionPane();
+			jop.showMessageDialog(null, e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
+		}
+		sheetsColumn = new int[sheetTemp.size() - 1][sheetTemp.get(0).size() - 2];
+		char column;
+		char firstColumn;
+		for (int i = 0; i < sheetTemp.size() - 1; i++) {
+			firstColumn = ((String) sheetTemp.get(i + 1).get(1))
+					.charAt(((String) sheetTemp.get(i + 1).get(1)).length() - 4);
+			for (int j = 0; j < sheetTemp.get(0).size() - 2; j++) {
+				column = ((String) sheetTemp.get(i + 1).get(j + 2)).charAt(0);
+				sheetsColumn[i][j] = column - firstColumn;
+				System.out.println(column +"   "+ firstColumn);
+			}
+		}
+	}
+	
+	public static String toStringColumns() {
+		String res="       ";
+		List<List<Object>> sheetTemp = new ArrayList();
+		try {
+			sheetTemp = SheetsQuickstart.getData("sheetsRange");
+		} catch (IOException e) {
+			JOptionPane jop = new JOptionPane();
+			jop.showMessageDialog(null, e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
+		}
+		System.out.println(sheetTemp.size());
+		for(int i = 2;i<sheetTemp.get(0).size();i++) {
+			res+=sheetTemp.get(0).get(i)+"  ";
+		}
+		res+="\n";
+		for(int i = 0;i<sheetsColumn.length;i++) {
+			if(i==0) res+="VIR :    ";
+			if(i==1)res+="CB :     ";
+			if(i==2)res+="CHQ :    ";
+			for(int j = 0;j<sheetsColumn[0].length;j++) {
+				res+= sheetsColumn[i][j]+"                         ";
+			}
+			res+="\n";
+		}
+		return res;
+	}
+
+	public static void hideAllScrollPane() {
+		DynamicList temp = new DynamicList();
+		for (int i = 0; i < components.size(); i++) {
+			System.out.println(components.get(i).getClass());
+			if (components.get(i).getClass().equals(temp.getClass())) {
+				((DynamicList) components.get(i)).hideScrollPane();
+				System.out.println("DynamicList");
+			}
+		}
+	}
+
+	/**
+	 * Methode qui permet d'ajouter un libelle sur la fenetre
+	 * 
+	 * @param name         nom affiche à l'ecran
+	 * @param y            le y du coin en haut a gauche
+	 * @param xRightCorner le x qui correspond au x du cote droit du libelle
+	 */
+	public static void addLibelle(String name, int x, int y, int width, int height) {
+		JLabel temp = new JLabel(name);
+		temp.setBounds(x, y, width, height);
+		labels.add(temp);
+		container.add(temp);
+	}
+
+	public static void addTitledBorder(String name, int x, int y, int width, int height) {
+		Font f = new Font("Calibri", Font.PLAIN | Font.BOLD, 20);
+		Color transparent = new Color(255, 255, 255, 160);
+		JPanel pan = new JPanel(); // cree un JPanel qui va nous permettre de customiser le bouton club
+		pan.setLayout(null);
+		pan.setBounds(x, y, width, height);
+		pan.setBackground(transparent); // met la couleur "transparent" en fond de fluxPan
+		TitledBorder borderTitle = new TitledBorder("Flux choisi"); // cree une bordure avec un titre pour le bouton
+		borderTitle.setTitleFont(f); // applique la police de toute a l'heure
+		pan.setBorder(borderTitle); // applique la bordure au bouton customise
+		container.add(pan);
 	}
 
 	/**
@@ -204,12 +403,9 @@ public class SheetsQuickstart {
 	 * @return la plage correspondante a prendre dans l'excel
 	 */
 	public static String getRange(String paiement) {
-		if (paiement.equals("VIR"))
-			return "Virements!B4:N";
-		if (paiement.equals("CHQ"))
-			return "Cheques!B4:N";
-		if (paiement.equals("CB"))
-			return "Carte bancaire!B4:N";
+		for (int i=0;i<sheetsRange.length;i++) {
+			if(sheetsRange[i][0].equals(paiement)) return sheetsRange[i][1];
+		}
 		return null;
 	}
 
@@ -220,23 +416,18 @@ public class SheetsQuickstart {
 	 * @return le mode de paiement associe, "VIR", "CHQ", "CB"
 	 */
 	public static String getModePaiement(String range) {
-		if (range.equals("Virements!B4:N"))
-			return "VIR";
-		if (range.equals("Cheques!B4:N"))
-			return "CHQ";
-		if (range.equals("Carte bancaire!B4:N"))
-			return "CB";
-		return null;
+	for (int i=0;i<sheetsRange.length;i++) {
+		if(sheetsRange[i][1].equals(range)) return sheetsRange[i][0];
+	}
+	return null;
 	}
 
 	/**
 	 * Methode qui permet de remettre toutes les listes de boutons a zero
 	 */
 	public static void initLists() {
-		jtfs = new ArrayList<JTextField>(); // remet la liste des bouton ou l'on peut remplir du texte a zero
-		combos = new ArrayList<JComboBox>(); // remet la liste des boutons a liste deroulante a zero
+		components = new ArrayList<JComponent>(); // remet la liste des composants a zero
 		labels = new ArrayList<JLabel>(); // remet la liste des labels (noms des boutons) a zero
-		boutons = new ArrayList<JButton>();
 	}
 
 	/**
@@ -251,7 +442,10 @@ public class SheetsQuickstart {
 	 * @throws GeneralSecurityException
 	 */
 	public static void init() throws IOException, GeneralSecurityException {
-		Color transparent = new Color(255, 255, 255, 130); // cree une couleur transparente qui permettra par la suite
+		updateSheetsColumn();
+		updateSheetsRange();
+		System.out.println(toStringColumns());
+		Color transparent = new Color(255, 255, 255, 160); // cree une couleur transparente qui permettra par la suite
 															// de voir
 		// le fond d'ecran au travers
 
@@ -306,8 +500,14 @@ public class SheetsQuickstart {
 		((JLabel) tabAffiche.getDefaultRenderer(Number.class)).setHorizontalTextPosition(JLabel.CENTER);
 
 		JMenuBar menuBar = new JMenuBar(); // cree une barre des taches
-		JMenu donnees = new JMenu("Données"); // cree un menu "donnees"
+		JMenu donnees = new JMenu("Données Sage"); // cree un menu "donnees"
 		JMenu excel = new JMenu("excels"); // cree un menu "excels"
+		JButton excelBouton = new JButton("Plages des excels");
+		excelBouton.addActionListener(new ChangeExcelRange());
+		JButton excelId = new JButton("Id des Excels");
+		excelId.addActionListener(new ChangeIdSheet());
+		excel.add(excelBouton);
+		excel.add(excelId);
 		menuBar.add(donnees); // ajoute a la barre des taches un onglet "Donnees"
 		frame.setJMenuBar(menuBar); // ajoute la barre des taches a la fenetre
 		menuBar.add(excel); // y ajoute un onglet "excels"
@@ -319,62 +519,45 @@ public class SheetsQuickstart {
 													// container
 		// on le met sur null pour pouvoir choisir precisement la place de chaque
 		// composant
+
 		int size = 22 + tabInfo.length * 22;
-		if(size>650) size=650;
-		SheetsQuickstart.tabLayout(1400, size); 
+		if (size > 650)
+			size = 650;
+		SheetsQuickstart.tabLayout(1400, size, 22);
 
 		SheetsQuickstart.container.add(tabPanel); // ajoute le tableau au container
+		SheetsQuickstart.addBouton("club", "combo", 120, tabPanel.getHeight() + 45, 260, 20);
+		SheetsQuickstart.addBouton("flux", "combo", 120, tabPanel.getHeight() + 135, 260, 20);
+		SheetsQuickstart.addBouton("modePaiement", "combo", 120, tabPanel.getHeight() + 225, 260, 20);
 
-		JComboBox club = new JComboBox(); // cree les trois boutons qui permettent de choisir quoi comptabiliser
-		JComboBox flux = new JComboBox();
-		JComboBox modePaiement = new JComboBox();
-
-		JLabel clubLab = new JLabel("club");
-		club.add(clubLab);
-		club.setBounds(100, tabPanel.getHeight() + 50, 120, 20); // parametre les tailles et positions des boutons
-		flux.setBounds(100, tabPanel.getHeight() + 150, 120, 20);
-		modePaiement.setBounds(100, tabPanel.getHeight() + 250, 100, 20);
 		List<List<Object>> sheet = SheetsQuickstart.getData("idSheets"); // recupere les clubs correspondants aux excels
 		for (int i = 1; i < sheet.size(); i++) { // ajoute tous les noms de clubs au bouton
-			club.addItem(sheet.get(i).get(0));
+			((JComboBox) SheetsQuickstart.components.get(0)).addItem(sheet.get(i).get(0));
 		}
-		AutoCompletion.enable(club); // permet de rechercher dans le bouton la valeur qu'on cherche
-		flux.addItem("Fiche de caisse - pas encore codé"); // TODO
-		flux.addItem("Debit"); // ajoute "debit" au bouton des flux
-		flux.addItem("Credit - pas encore codé"); // TODO
-		flux.setSelectedItem("Debit");
-		modePaiement.addItem("VIR");
-		modePaiement.addItem("CHQ");
-		modePaiement.addItem("CB");
 
-		JPanel clubPan = new JPanel(); // cree un JPanel qui va nous permettre de customiser le bouton club
-		clubPan.setLayout(null);
-		clubPan.setBounds(100, tabPanel.getHeight() + 50, 300, 60);
-		clubPan.setBackground(transparent); // met la couleur "transparent" en fond de clubPan
-		TitledBorder borderTitle = new TitledBorder("Excel choisi"); // cree une bordure avec un titre pour le bouton
-		Font f = new Font("Calibri", Font.PLAIN, 16);// cree une police
-		borderTitle.setTitleFont(f); // applique la police de toute a l'heure
+		// AutoCompletion.enable(club); // permet de rechercher dans le bouton la valeur
+		// qu'on cherche
+		((JComboBox) SheetsQuickstart.components.get(1)).addItem("Fiche de caisse - pas encore codé"); // TODO
+		((JComboBox) SheetsQuickstart.components.get(1)).addItem("Debit"); // ajoute "debit" au bouton des flux
+		((JComboBox) SheetsQuickstart.components.get(1)).addItem("Credit - pas encore codé"); // TODO
+		((JComboBox) SheetsQuickstart.components.get(1)).setSelectedItem("Debit");
+		((JComboBox) SheetsQuickstart.components.get(2)).addItem("VIR");
+		((JComboBox) SheetsQuickstart.components.get(2)).addItem("CHQ");
+		((JComboBox) SheetsQuickstart.components.get(2)).addItem("CB");
 
-		clubPan.setBorder(borderTitle); // applique la bordure au bouton customise
-		clubPan.add(club); // ajoute le vrai bouton au bouton customise
-		combos.add(club); // ajoute les boutons dans les listes de boutons pour qu'on puisse y avoir acces
-							// depuis une autre classe
-		combos.add(flux);
-		combos.get(1).addItem("test");
-		combos.add(modePaiement);
-		container.add(clubPan); // ajoute les boutons au container
-		container.add(flux);
-		combos.get(1).addItem("test 2");
-		container.add(modePaiement);
+		SheetsQuickstart.addTitledBorder("Flux choisi", 100, tabPanel.getHeight() + 110, 300, 60);
+		SheetsQuickstart.addTitledBorder("Excel choisi", 100, tabPanel.getHeight() + 20, 300, 60);
+		SheetsQuickstart.addTitledBorder("Mode de Paiement choisi", 100, tabPanel.getHeight() + 200, 300, 60);
 
-		JButton b2 = new JButton("Commencer les ecritures comptables"); // cree un bouton classique pour commencer
-		b2.setBounds(400, tabPanel.getHeight() + 200, 400, 50);
-		b2.addActionListener(new CommencerEcritures()); // ajoute une action liee au bouton, voir "CommencerEcriture"
-		container.add(b2); // ajoute le bouton au container
+		SheetsQuickstart.addBouton("Commencer les ecritures comptables", "button", 700, tabPanel.getHeight() + 115, 400,
+				50);
+		((JButton) components.get(3)).addActionListener(new CommencerEcritures()); // ajoute une action liee au bouton,
+																					// voir "CommencerEcriture"
 
 		frame.setLayout(null);
 		frame.setResizable(false); // empeche de redimensionner la fenetre
-		frame.setBounds(0, 0, 1400, tabPanel.getHeight()+350);
+		frame.setBounds(0, 0, 1400, tabPanel.getHeight() + 350);
+		container.setBounds(frame.getX(), frame.getY(), frame.getWidth(), frame.getHeight());
 
 		ImageIcon img2 = new ImageIcon("src/main/resources/feu artifice.jpg"); // va chercher l'image dans les
 		// ressources
@@ -398,12 +581,12 @@ public class SheetsQuickstart {
 	 * @param widht  largeur du tableau
 	 * @param height hauteur du tableau
 	 */
-	public static void tabLayout(int widht, int height) {
+	public static void tabLayout(int widht, int height, int rowHeight) {
 		Color transparent = new Color(255, 255, 255, 160);
 		tabAffiche.setEnabled(false); // empeche que les champs soient modifiable une fois la
 		// fenetre
 		// ouverte
-		tabAffiche.setRowHeight(22); // parametre la hauteur des cellules a 22 pixels
+		tabAffiche.setRowHeight(rowHeight); // parametre la hauteur des cellules a 22 pixels
 		Font f = new Font("Calibri", Font.PLAIN, 16); // cree une police
 		tabAffiche.setFont(f); // applique la police au tableau
 		tabPanel = new JPanel(); // initialise le tabPanel
@@ -421,37 +604,39 @@ public class SheetsQuickstart {
 	 * des boutons lorsque l'on change d'ecriture
 	 */
 	public static void updateEcriture() {
-
-		SheetsQuickstart.container.remove(SheetsQuickstart.tabPanel); // enleve le tableau pour le remettre apres, il
-																		// s'actualise pas sinon
+		for (int i = 0; i<container.getComponentCount();i++) {
+			if (container.getComponent(i).equals(tabPanel)) container.remove(i);
+		}
 		String[][] tempTab = { SheetsQuickstart.tab[SheetsQuickstart.numeroLigne] }; // cree le nouveau tableau
 		tabAffiche = new JTable(tempTab, SheetsQuickstart.tab[0]);
 
-		SheetsQuickstart.tabLayout(1700, 44);
+		SheetsQuickstart.tabLayout(1800, 66, 44);
 
 		container.add(SheetsQuickstart.tabPanel);// remet le tableau dans la fenetre une fois qu'il est bien modifie
 
-		jtfs.get(0).setText(tempTab[0][7]);
-		jtfs.get(1).setText(tempTab[0][5]);
-		jtfs.get(2).setText(tempTab[0][3]);
-		jtfs.get(3).setText(tempTab[0][10]);
-		jtfs.get(4).setText(tempTab[0][2]);
+		int y =0;
+		JTextField temp = new JTextField();
+		if(((JComboBox) components.get(10)).getSelectedItem().equals("CB")) y=1;
+		if(((JComboBox) components.get(10)).getSelectedItem().equals("CHQ")) y=2;
+		((JTextField) components.get(1)).setText(tempTab[0][sheetsColumn[y][0]]); // tempTab[0][0]
+		((JTextField) components.get(2)).setText(tempTab[0][sheetsColumn[y][1]]);
+		((JTextField) components.get(3)).setText(tempTab[0][sheetsColumn[y][2]]);
+		((JTextField) components.get(8)).setText(tempTab[0][sheetsColumn[y][4]]);
+		if (components.get(11).getClass().equals(temp.getClass()))
+			((JTextField) components.get(11)).setText(tempTab[0][sheetsColumn[y][5]]);
 		try {
-			List<List<Object>> sheetTemp = SheetsQuickstart.getSheet("1fPMx7whVngMUKxdU-RRlYeRodVxsY0ifM9LBocWXhQQ",
-					"Codes analytiques!A2:D");
-			String codeAnal = SheetsQuickstart.tab[SheetsQuickstart.numeroLigne][0];
-			for (int i = 0; i < sheetTemp.size(); i++) {
-				if (sheetTemp.get(i).get(2).equals(codeAnal))
-					SheetsQuickstart.combos.get(3).setSelectedItem(sheetTemp.get(i).get(1));
+			List<List<Object>> sheetTemp = SheetsQuickstart.getData("codes analytiques");
+			String codeAnal = tempTab[0][sheetsColumn[y][3]];
+			for (int i = 1; i < sheetTemp.size(); i++) {
+				if (sheetTemp.get(i).get(2).equals(codeAnal)) {
+				}
+				((DynamicList) SheetsQuickstart.components.get(6)).setSelectedItem((String) sheetTemp.get(i).get(1));
 			}
 		} catch (IOException exception) {
-			System.out.println("merde y'a une erreur mais je sais pas ou - IOException");
-		} catch (GeneralSecurityException exception2) {
-			System.out.println("merde y'a une erreur mais je sais pas ou - GeneralSecurityException");
+			JOptionPane jop = new JOptionPane();
+			jop.showMessageDialog(null, exception.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
 		}
 	}
-
-	// TODO CREER methode qui actualise les champs preremplis
 
 	/**
 	 * Fonction qui permet d'aller chercher dans les ressources les donnees
@@ -465,8 +650,8 @@ public class SheetsQuickstart {
 	public static List<List<Object>> getData(String data) throws IOException {
 		List<List<Object>> res = new ArrayList();
 		BufferedReader reader = new BufferedReader(
-				new FileReader(new File("src/main/resources/Sage Data/" + data + ".txt"))); // va chercher le fichier
-																							// concerne
+				new FileReader(new File("src/main/resources/Data/" + data + ".txt"))); // va chercher le fichier
+																						// concerne
 		String read = reader.readLine(); // lis le fichier ligne par ligne
 		int j = 0;
 		while (read != null) { // read vaut null quand il n'y a plus de ligne a lire
@@ -558,8 +743,11 @@ public class SheetsQuickstart {
 				compteur++;
 				writer.write("\"" + compteur + "\"	\"" + selected[i][8] + "\"	\"" + selected[i][9] + "\"	\""
 						+ compteFournisseur[0] + "\"	\"" + compteFournisseur[1] + "\"	\"" + selected[i][4]
-						+ "\"	D	B	\"" + selected[i][3] + "\"		\"6\"	\"" + selected[i][11] + "\"	\""
-						+ selected[i][9] + "\"	\"" + codeAnal + "\"	\"" + selected[i][7] + "\"\n");
+						+ "\"	D	B	\"" + selected[i][3] + "\"	");
+				if (selected[i][11].equals("CHQ"))
+					writer.write("\"" + selected[i][12] + "\"");
+				writer.write("	\"6\"	\"" + selected[i][11] + "\"	\"" + selected[i][9] + "\"	\"" + codeAnal
+						+ "\"	\"" + selected[i][7] + "\"\n");
 				writer.write("\"" + compteur + "\"	\"" + selected[i][8] + "\"	\"" + selected[i][9] + "\"	\""
 						+ selected[i][10].substring(0, 7) + "\"	\"" + selected[i][10].substring(11) + "\"	\""
 						+ selected[i][4] + "\"	C	B	\"" + selected[i][3] + "\"		\"6\"	\"" + selected[i][11]
@@ -688,6 +876,23 @@ public class SheetsQuickstart {
 			SheetsQuickstart.copyFile(journal, result);
 			SheetsQuickstart.copyFile(modePaiement, result);
 
+			String ObjButtons[] = { "Yes", "No" }; // TODO gerer un mauvais import de Sage
+			int PromptResult = JOptionPane.showOptionDialog(null, "L'import des données s'est bien fait sur Sage ?",
+					"Import avec succes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons,
+					ObjButtons[1]);
+			if (PromptResult == JOptionPane.YES_OPTION) {
+				String listTiers = "";
+				for (int i = 0; i < compare.get(0).size(); i++) {
+					listTiers += compare.get(0).get(i) + "\n";
+				}
+
+				JOptionPane PromptResult1 = new JOptionPane();
+				PromptResult1.showMessageDialog(null,
+						"N'oubliez pas de faire le lettrage des ecritures !\nVoici la liste des comptes a lettrer :\n\n"
+								+ listTiers,
+						"Lettrage sur Sage", JOptionPane.INFORMATION_MESSAGE);
+			}
+
 			mouvement.delete();
 			tiers.delete();
 			journal.delete();
@@ -696,9 +901,11 @@ public class SheetsQuickstart {
 			SheetsQuickstart.init();
 
 		} catch (HeadlessException he) {
-			he.printStackTrace();
+			JOptionPane jop = new JOptionPane();
+			jop.showMessageDialog(null, he.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
 		} catch (GeneralSecurityException he) {
-			System.out.println("merde y'a une erreur mais je sais pas ou - GeneralSecurityException");
+			JOptionPane jop = new JOptionPane();
+			jop.showMessageDialog(null, he.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
 		}
 
 	}
@@ -751,10 +958,12 @@ public class SheetsQuickstart {
 		} catch (FileNotFoundException e) {
 			// Cette exception est levée si l'objet FileInputStream ne trouve
 			// aucun fichier
-			e.printStackTrace();
+			JOptionPane jop = new JOptionPane();
+			jop.showMessageDialog(null, e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
 		} catch (IOException e) {
 			// Celle-ci se produit lors d'une erreur d'écriture ou de lecture
-			e.printStackTrace();
+			JOptionPane jop = new JOptionPane();
+			jop.showMessageDialog(null, e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
 		} finally {
 			// On ferme nos flux de données dans un bloc finally pour s'assurer
 			// que ces instructions seront exécutées dans tous les cas même si
@@ -763,30 +972,19 @@ public class SheetsQuickstart {
 				if (fis != null)
 					fis.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				JOptionPane jop = new JOptionPane();
+				jop.showMessageDialog(null, e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
 			}
 
 			try {
 				if (fos != null)
 					fos.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				JOptionPane jop = new JOptionPane();
+				jop.showMessageDialog(null, e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
 			}
 		}
 	}
-
-	/*
-	 * public static void createText(String sheetId, String range, String name,
-	 * boolean clubAssocie) // sert a importer // plus facilement // les donnees de
-	 * // sage throws IOException, GeneralSecurityException { List<List<Object>>
-	 * sheet = SheetsQuickstart.getSheet(sheetId, range); File res = new
-	 * File("src/main/resources/Sage Data/" + name + ".txt"); BufferedWriter writer
-	 * = new BufferedWriter(new FileWriter(res)); int border = sheet.get(0).size();
-	 * if (clubAssocie) border--; for (int i = 0; i < sheet.size(); i++) { for (int
-	 * j = 0; j < border; j++) { if (sheet.get(i).get(j) != "") {
-	 * writer.write(sheet.get(i).get(j) + ";;"); } else writer.write(" ;;"); }
-	 * writer.write("\n"); } writer.close(); }
-	 */
 
 	/**
 	 * Methode qui permet d'etablir la connexion avec google et qui retourne une
@@ -808,27 +1006,6 @@ public class SheetsQuickstart {
 	}
 
 	public static void main(String... args) throws IOException, GeneralSecurityException {
-		// List<List<Object>> test = SheetsQuickstart.getData("codes analytiques");
-
-		/*
-		 * SheetsQuickstart.createText("1fPMx7whVngMUKxdU-RRlYeRodVxsY0ifM9LBocWXhQQ",
-		 * "Clubs!A1:B","idSheets",false); SheetsQuickstart.createText(
-		 * "1fPMx7whVngMUKxdU-RRlYeRodVxsY0ifM9LBocWXhQQ","Codes analytiques!A1:D"
-		 * ,"codes analytiques",true);
-		 * SheetsQuickstart.createText("1fPMx7whVngMUKxdU-RRlYeRodVxsY0ifM9LBocWXhQQ",
-		 * "JournauxBanque!A1:E","journaux de banques",true);
-		 * SheetsQuickstart.createText("1fPMx7whVngMUKxdU-RRlYeRodVxsY0ifM9LBocWXhQQ",
-		 * "CompteBanque!A1:E","comptes bancaires",true);
-		 * SheetsQuickstart.createText("1fPMx7whVngMUKxdU-RRlYeRodVxsY0ifM9LBocWXhQQ",
-		 * "JournauxVenteAchat!A1:E","journaux ventes et achats",true);
-		 * SheetsQuickstart.createText("1fPMx7whVngMUKxdU-RRlYeRodVxsY0ifM9LBocWXhQQ",
-		 * "CompteCharge!A1:C","comptes de charge",false);
-		 * SheetsQuickstart.createText("1fPMx7whVngMUKxdU-RRlYeRodVxsY0ifM9LBocWXhQQ",
-		 * "CompteClient!A1:C","comptes clients",false);
-		 * SheetsQuickstart.createText("1fPMx7whVngMUKxdU-RRlYeRodVxsY0ifM9LBocWXhQQ",
-		 * "CompteFournisseur!A1:C","comptes fournisseur",false);
-		 */
-
 		SheetsQuickstart.init();
 	}
 }

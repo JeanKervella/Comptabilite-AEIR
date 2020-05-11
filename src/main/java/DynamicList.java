@@ -130,11 +130,11 @@ public class DynamicList extends JComponent implements ActionListener, FocusList
 		temp.add(button);
 		super.add(temp, BorderLayout.NORTH);
 	}
-	
+
 	public int getItemCount() {
 		return this.listeModel.getSize();
 	}
-	
+
 	public String getItemAt(int index) {
 		return listeModel.get(index);
 	}
@@ -167,7 +167,7 @@ public class DynamicList extends JComponent implements ActionListener, FocusList
 				int i = 0;
 				boolean test = false;
 				while (i < jList.getModel().getSize() && !test) {
-					test = ((String) jList.getModel().getElementAt(i)).contains(filter);
+					test = ((String) jList.getModel().getElementAt(i)).toUpperCase().contains(filter.toUpperCase());
 					jList.setSelectedIndex(i);
 				}
 			}
@@ -180,16 +180,28 @@ public class DynamicList extends JComponent implements ActionListener, FocusList
 		list.setVisibleRowCount(6);
 		return list;
 	}
-
+	public void initAffiche() {
+		for(int i =0;i<listeModel.size();i++) {
+			if(!listeAffiche.contains(listeModel.get(i))) {
+				listeAffiche.addElement(listeModel.get(i));
+			}
+		}
+	}
+	
+	
 	public void filterModel(DefaultListModel<String> model, String filter) {
 		for (int i = 0; i < listeModel.getSize(); i++) {
-			if (!listeModel.get(i).contains(filter)) {
+			if (!listeModel.get(i).toUpperCase().contains(filter.toUpperCase())) {
 				if (model.contains(listeModel.get(i))) {
 					model.removeElement(listeModel.get(i));
 				}
 			} else {
 				if (!model.contains(listeModel.get(i))) {
 					model.addElement(listeModel.get(i));
+				}
+				if(listeModel.get(i).toUpperCase().equals(filter.toUpperCase())) {
+					initAffiche();
+					jList.ensureIndexIsVisible(jList.getSelectedIndex());
 				}
 			}
 		}
@@ -208,8 +220,13 @@ public class DynamicList extends JComponent implements ActionListener, FocusList
 	}
 
 	public void setSelectedItem(String item) {
-		for (int i = 0; i < jList.getModel().getSize(); i++) {
-			if (jList.getModel().getElementAt(i).equals(item)) {
+		initAffiche();
+		System.out.println("In selected Item");
+		for (int i = 0; i < listeAffiche.getSize(); i++) {
+			System.out.println(((String)listeAffiche.getElementAt(i)));
+			System.out.println(item);
+			if (((String)listeAffiche.getElementAt(i)).equals(item)) {
+				System.out.println("Item Found");
 				jList.setSelectedIndex(i);
 				textField.setText((String) jList.getSelectedValue());
 				return;
@@ -231,7 +248,7 @@ public class DynamicList extends JComponent implements ActionListener, FocusList
 	}
 
 	public void hideScrollPane() {
-		scrollPane.setVisible(false);
+		this.scrollPane.setVisible(false);
 	}
 
 	public static void main(String[] args) {
@@ -264,6 +281,12 @@ public class DynamicList extends JComponent implements ActionListener, FocusList
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		test2.hideScrollPane();
+
+		String doub = "8,99";
+		String doub2 = "60,00";
+		String doub3 = "24.99";
+		System.out.println(doub3);
+		System.out.println(doub3.replace(".",","));
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -300,6 +323,8 @@ public class DynamicList extends JComponent implements ActionListener, FocusList
 		}
 		if (e.getKeyCode() == 10) {
 			textField.setText((String) jList.getSelectedValue());
+			System.out.println("10)");
+			scrollPane.setVisible(false);
 		}
 		if (e.getKeyCode() == 27) {
 			textField.transferFocus();

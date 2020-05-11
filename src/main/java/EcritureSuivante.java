@@ -1,17 +1,16 @@
-import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.List;
+
+import javax.swing.JComboBox;
+import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
+import javax.swing.JTextField;
 
 public class EcritureSuivante implements ActionListener {
 
 	public void actionPerformed(ActionEvent e) {
-		
+
 		if (SheetsQuickstart.selectedCorrect()) {
 			SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][0] = "true";
 			SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][1] = (String) ((DynamicList) SheetsQuickstart.components
@@ -20,8 +19,8 @@ public class EcritureSuivante implements ActionListener {
 					.get(1)).getText();
 			SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][3] = (String) ((JTextField) SheetsQuickstart.components
 					.get(2)).getText();
-			SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][4] = (String) ((JTextField) SheetsQuickstart.components
-					.get(3)).getText();
+			SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][4] = ((String) ((JTextField) SheetsQuickstart.components
+					.get(3)).getText()).replace(".", ",");
 			SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][5] = (String) ((DynamicList) SheetsQuickstart.components
 					.get(4)).getSelectedItem();
 			SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][6] = (String) ((DynamicList) SheetsQuickstart.components
@@ -41,20 +40,37 @@ public class EcritureSuivante implements ActionListener {
 						.get(11)).getText();
 			} else
 				SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][12] = ".";
-
 			String modePaie = (String) ((JComboBox) SheetsQuickstart.components.get(10)).getSelectedItem();
-			int moPaie=0;
+			int moPaie = 0;
 			if (modePaie.equals("VIR"))
 				moPaie = 0;
 			if (modePaie.equals("CB"))
 				moPaie = 1;
 			if (modePaie.equals("CHQ"))
 				moPaie = 2;
+
+			if (Integer.parseInt((String) SheetsQuickstart.tabAffiche.getValueAt(0, SheetsQuickstart.sheetsColumn[moPaie][7])) == 1)
+				SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][13] = String
+						.valueOf(SheetsQuickstart.numeroLigne);
+			else {
+				if (SheetsQuickstart.selected[SheetsQuickstart.numeroLigne - 1][13].equals(".") || Integer.parseInt(
+						SheetsQuickstart.selected[SheetsQuickstart.numeroLigne - 1][13]) == SheetsQuickstart.numeroLigne
+								- 1) {
+					SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][13] = String
+							.valueOf(SheetsQuickstart.numeroLigne - 1 + Integer.parseInt((String) SheetsQuickstart.tabAffiche.getValueAt(0,
+									SheetsQuickstart.sheetsColumn[moPaie][7])));
+				} else {
+					SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][13] =SheetsQuickstart.selected[SheetsQuickstart.numeroLigne-1][13];
+				}
+			}
+
 			int test = SheetsQuickstart.numeroLigne;
 			test++;
-			while (test < SheetsQuickstart.tab.length && !SheetsQuickstart.tab[SheetsQuickstart.numeroLigne][SheetsQuickstart.sheetsColumn[moPaie][6]]
-					.equals("")
-			&& SheetsQuickstart.tab[SheetsQuickstart.numeroLigne][SheetsQuickstart.sheetsColumn[moPaie][4]].equals("")) {
+			while (test < SheetsQuickstart.tab.length
+					&& (!SheetsQuickstart.tab[SheetsQuickstart.numeroLigne][SheetsQuickstart.sheetsColumn[moPaie][6]]
+							.equals("")
+							|| SheetsQuickstart.tab[SheetsQuickstart.numeroLigne][SheetsQuickstart.sheetsColumn[moPaie][4]]
+									.isEmpty())) {
 				test++;
 			}
 			if (test >= SheetsQuickstart.tab.length) {
@@ -73,6 +89,8 @@ public class EcritureSuivante implements ActionListener {
 
 			} else {
 				SheetsQuickstart.numeroLigne = test;
+				((JProgressBar) SheetsQuickstart.components.get(17))
+						.setValue(((JProgressBar) SheetsQuickstart.components.get(17)).getValue() + 1);
 				SheetsQuickstart.updateEcriture();
 				System.out.println(SheetsQuickstart.toStringSelected());
 			}

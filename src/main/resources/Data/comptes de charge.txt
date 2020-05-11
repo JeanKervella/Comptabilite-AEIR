@@ -203,3 +203,4 @@ n° compte;;Intitulé;;concat;;
 68970000;;Engag.a realiser s/legs affectees;;68970000 - Engag.a realiser s/legs affectees;;
 69000000;;Particip. sal. / impots sur ben.;;69000000 - Particip. sal. / impots sur ben.;;
 69500000;;Impots sur societe;;69500000 - Impots sur societe;;
+60000001;;compte test;;60000001 - compte test;;

@@ -35,8 +35,13 @@ public class CommencerEcritures implements ActionListener {
 				if (temp.equals(club))
 					idSheetWanted = (String) sheet.get(i).get(1);
 			}
-
-			sheet = SheetsQuickstart.getSheet(idSheetWanted, modePaie);
+			SheetsQuickstart.spreadsheetId=idSheetWanted;
+			try {
+				sheet = SheetsQuickstart.getSheet(idSheetWanted, modePaie);
+			} catch (GeneralSecurityException e1) {
+				JOptionPane jop = new JOptionPane();
+				jop.showMessageDialog(null, e1.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
+			}
 			SheetsQuickstart.tab = new String[sheet.size()][sheet.get(0).size()];
 
 			for (int i = 0; i < sheet.size(); i++) {
@@ -48,15 +53,12 @@ public class CommencerEcritures implements ActionListener {
 		} catch (IOException exception) {
 			JOptionPane jop = new JOptionPane();
 			jop.showMessageDialog(null, exception.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
-		} catch (GeneralSecurityException exception2) {
-			JOptionPane jop = new JOptionPane();
-			jop.showMessageDialog(null, exception2.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
-		}
+		} 
 		SheetsQuickstart.numeroLigne = 1;
 		while (SheetsQuickstart.numeroLigne < SheetsQuickstart.tab.length
-				&& !SheetsQuickstart.tab[SheetsQuickstart.numeroLigne][SheetsQuickstart.sheetsColumn[moPaie][6]]
+				&& (!SheetsQuickstart.tab[SheetsQuickstart.numeroLigne][SheetsQuickstart.sheetsColumn[moPaie][6]]
 						.equals("")
-				&& SheetsQuickstart.tab[SheetsQuickstart.numeroLigne][SheetsQuickstart.sheetsColumn[moPaie][4]].equals("")) {
+				|| SheetsQuickstart.tab[SheetsQuickstart.numeroLigne][SheetsQuickstart.sheetsColumn[moPaie][4]].equals(""))) {
 			SheetsQuickstart.numeroLigne++;
 		}
 		if (SheetsQuickstart.numeroLigne >= SheetsQuickstart.tab.length) {
@@ -70,7 +72,7 @@ public class CommencerEcritures implements ActionListener {
 			String[][] tempTab = { SheetsQuickstart.tab[SheetsQuickstart.numeroLigne] };
 			SheetsQuickstart.tabAffiche = new JTable(tempTab, SheetsQuickstart.tab[0]);
 			SheetsQuickstart.tabLayout(1800, 66, 44);
-			SheetsQuickstart.selected = new String[SheetsQuickstart.tab.length][13];
+			SheetsQuickstart.selected = new String[SheetsQuickstart.tab.length][14];
 			for (int i = 0; i < SheetsQuickstart.selected.length; i++) {
 				for (int j = 0; j < SheetsQuickstart.selected[0].length; j++) {
 					SheetsQuickstart.selected[i][j] = ".";
@@ -96,8 +98,8 @@ public class CommencerEcritures implements ActionListener {
 			if (flux.equals("Credit"))
 				compare = "V";
 
-			SheetsQuickstart.addBouton("journalFacture", "dynamic", 200, 55, 100, 20); // .get(0)
-			SheetsQuickstart.addLibelle("journal Facture", 110, 55, 100, 20);
+			SheetsQuickstart.addBouton("journalFacture", "dynamic", 200, 80, 100, 20); // .get(0)
+			SheetsQuickstart.addLibelle("journal Facture", 110, 80, 100, 20);
 			try {
 				sheetTemp = SheetsQuickstart.getData("journaux ventes et achats");
 				for (int i = 1; i < sheetTemp.size(); i++) {
@@ -111,41 +113,54 @@ public class CommencerEcritures implements ActionListener {
 				jop.showMessageDialog(null, exception.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
 			}
 
-			SheetsQuickstart.addBouton("date facture", "jtf", 600, 50, 70, 30); // .get(1)
-			SheetsQuickstart.addLibelle("date Facture", 520, 55, 150, 20);
-			SheetsQuickstart.addBouton("libelle", "jtf", 1000, 50, 200, 30); // get(2)
-			SheetsQuickstart.addLibelle("libelle", 960, 55, 150, 20);
-			SheetsQuickstart.addBouton("montant", "jtf", 1400, 50, 70, 30); // get(3)
-			SheetsQuickstart.addLibelle("Montant", 1350, 55, 150, 20);
+			SheetsQuickstart.addBouton("date facture", "jtf", 600, 75, 70, 30); // .get(1)
+			SheetsQuickstart.addLibelle("date Facture", 520, 80, 150, 20);
+			SheetsQuickstart.addBouton("libelle", "jtf", 1000, 75, 200, 30); // get(2)
+			SheetsQuickstart.addLibelle("libelle", 960, 80, 150, 20);
+			SheetsQuickstart.addBouton("montant", "jtf", 1400, 75, 70, 30); // get(3)
+			SheetsQuickstart.addLibelle("Montant", 1350, 80, 150, 20);
 
-			SheetsQuickstart.addBouton("compte Facture", "dynamic", 200, 105, 280, 20); // get(4)
-			SheetsQuickstart.addLibelle("compte Facture", 105, 105, 180, 20);
-			SheetsQuickstart.addBouton("compte Fournisseur", "dynamic", 600, 105, 280, 20); // get(5)
-			SheetsQuickstart.addLibelle("compte Fournisseur", 480, 105, 180, 20);
-			SheetsQuickstart.addBouton("code analytique", "dynamic", 1000, 105, 230, 27); // get(6)
-			SheetsQuickstart.addLibelle("code analytique", 905, 105, 150, 20);
-			SheetsQuickstart.addBouton("code journal banque", "dynamic", 1400, 105, 100, 27); // get(7)
-			SheetsQuickstart.addLibelle("code journal banque", 1280, 105, 150, 20);
+			SheetsQuickstart.addBouton("compte Facture", "dynamic", 200, 130, 280, 20); // get(4)
+			SheetsQuickstart.addLibelle("compte Facture", 105, 130, 180, 20);
+			SheetsQuickstart.addBouton("compte Fournisseur", "dynamic", 600, 130, 280, 20); // get(5)
+			SheetsQuickstart.addLibelle("compte Fournisseur", 480, 130, 180, 20);
+			SheetsQuickstart.addBouton("code analytique", "dynamic", 1000, 125, 230, 30); // get(6)
+			SheetsQuickstart.addLibelle("code analytique", 905, 130, 150, 20);
+			SheetsQuickstart.addBouton("code journal banque", "dynamic", 1400, 125, 100, 30); // get(7)
+			SheetsQuickstart.addLibelle("code journal banque", 1280, 130, 150, 20);
 
-			SheetsQuickstart.addBouton("date Paiement", "jtf", 200, 150, 70, 30); // get(8)
-			SheetsQuickstart.addLibelle("date Paiement", 110, 155, 150, 20);
-			SheetsQuickstart.addBouton("compte Banque", "dynamic", 600, 155, 220, 20); // get(9)
-			SheetsQuickstart.addLibelle("compte Banque", 500, 155, 150, 20);
-			SheetsQuickstart.addBouton("mode paiement", "combo", 1000, 155, 60, 27); // get(10)
-			SheetsQuickstart.addLibelle("mode Paiement", 905, 155, 150, 20);
+			SheetsQuickstart.addBouton("date Paiement", "jtf", 200, 175, 70, 30); // get(8)
+			SheetsQuickstart.addLibelle("date Paiement", 110, 180, 150, 20);
+			SheetsQuickstart.addBouton("compte Banque", "dynamic", 600, 180, 220, 20); // get(9)
+			SheetsQuickstart.addLibelle("compte Banque", 500, 180, 150, 20);
+			SheetsQuickstart.addBouton("mode paiement", "combo", 1000, 175, 60, 30); // get(10)
 			if (SheetsQuickstart.getModePaiement(modePaie).equals("CHQ")) {
-				SheetsQuickstart.addBouton("numero de cheque", "jtf", 1400, 150, 70, 30); // get(11)
-				SheetsQuickstart.addLibelle("numero de cheque", 1285, 150, 150, 20);
+				SheetsQuickstart.addBouton("numero de cheque", "jtf", 1400, 175, 70, 30); // get(11)
+				SheetsQuickstart.addLibelle("numero de cheque", 1285, 180, 150, 20);
 			} else
 				SheetsQuickstart.addBouton("nothing", "nothing", 0, 0, 0, 0); // get(11)
 
-			SheetsQuickstart.addBouton("Annuler tout", "button", 20, 200, 200, 50); // get(12)
-			SheetsQuickstart.addBouton("Enregistrer ce qui a deja ete fait", "button", 240, 200, 230, 50); // get(13)
-			SheetsQuickstart.addBouton("Annuler la derniere ecriture", "button", 920, 200, 200, 50); // get(14)
-			SheetsQuickstart.addBouton("Sauter cette ecriture", "button", 1140, 200, 200, 50); // get(15)
-			SheetsQuickstart.addBouton("Enregistrer et suivante", "button", 1360, 200, 200, 50); // get(16)
+			SheetsQuickstart.addBouton("Annuler tout", "button", 20, 330, 200, 50); // get(12)
+			SheetsQuickstart.addBouton("Enregistrer ce qui a deja ete fait", "button", 240, 330, 230, 50); // get(13)
+			SheetsQuickstart.addBouton("Annuler la derniere ecriture enregistree", "button", 920, 330, 200, 50); // get(14)
+			SheetsQuickstart.addBouton("Sauter cette ecriture", "button", 1140, 330, 200, 50); // get(15)
+			SheetsQuickstart.addBouton("Enregistrer et suivante", "button", 1360, 330, 200, 50); // get(16)
 			SheetsQuickstart.components.get(16).requestFocus();
+			int max=0;
+			for(int i = 1; i<SheetsQuickstart.tab.length;i++) {
+				if(SheetsQuickstart.tab[i][SheetsQuickstart.sheetsColumn[moPaie][6]]
+						.equals("")
+						&& !SheetsQuickstart.tab[i][SheetsQuickstart.sheetsColumn[moPaie][4]].equals("")) {
+					max++;
+				}
+			}
 
+			SheetsQuickstart.addBouton("progress", "progress", 500, 240, 400, 30); // get(17)
+			((JProgressBar) SheetsQuickstart.components.get(17)).setMinimum(0);
+			((JProgressBar) SheetsQuickstart.components.get(17)).setMaximum(max);
+			((JProgressBar) SheetsQuickstart.components.get(17)).setValue(0);
+			
+			SheetsQuickstart.components.get(10).setVisible(false);
 			((JButton) SheetsQuickstart.components.get(14)).addActionListener(new EcriturePrecedente());
 			((JButton) SheetsQuickstart.components.get(15)).addActionListener(new SauterEcriture());
 			((JButton) SheetsQuickstart.components.get(16)).addActionListener(new EcritureSuivante());
@@ -184,6 +199,7 @@ public class CommencerEcritures implements ActionListener {
 				JOptionPane jop = new JOptionPane();
 				jop.showMessageDialog(null, exception.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
 			}
+			
 
 			// 5eme JComboBox
 			try {
@@ -243,8 +259,8 @@ public class CommencerEcritures implements ActionListener {
 
 			
 			System.out.println(SheetsQuickstart.numeroLigne);
+			SheetsQuickstart.frame.setVisible(true);
 			SheetsQuickstart.hideAllScrollPane();
-
 		}
 
 	}

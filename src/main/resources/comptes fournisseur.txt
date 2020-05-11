@@ -199,8 +199,3 @@ n° compte;;Intitulé;;concat;;
 40960000;;Fourn. crean. emb. & mat. a rendre;;40960000 - Fourn. crean. emb. & mat. a rendre;;
 40980000;;Rabais à obtenir;;40980000 - Rabais à obtenir;;
 40FB;;FACEBOOK;;40FB - FACEBOOK;;
-401CHE;;Melanie Chevalier;;401CHE - Melanie Chevalier;;
-401ROI;;Festival Le Roi Arthur;;401ROI - Festival Le Roi Arthur;;
-401EXT;;Extincteur Nantais;;401EXT - Extincteur Nantais;;
-401ROU;;Matthieu Roux;;401ROU - Matthieu Roux;;
-401GRO;;Elodie Grondin;;401GRO - Elodie Grondin;;

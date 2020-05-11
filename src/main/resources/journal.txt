@@ -1,0 +1,3 @@
+##Section	Jnl
+"HAINS"	"Achat - Insalan"	"A"
+"BQINS1"	"Banque - Insalan"	"T"

@@ -1,2 +1,16 @@
 Club;;Id sheet debit;;
 Amicale;;1xHWIOmxmSk5egQyi146OCxB8G9qh97XwdFHSzMF2AAo;;
+autres clubs;;1sxd4jSBGQkmWVIIL1sB6Do7Ja0QjkuXXDamauqB4lbs;;
+Bebop;;1EDA0qYwi_zOsdno7IC-mEiHidV4NL6vVr2-mxvEYuh0;;
+FOG;;1Y6G8N7udflqqouaH-i7eO1b9jCFczHjqEveXdzUGga8;;
+Foyer;;1O25Lp8ZIUlScFzkj2IX-P6B5EkKCnbZsgohAS0bLz9g;;
+Gala;;18_Nb0vc3Nl49ar8YazbiBZ5kmJG2ZNutnf5dE1ObXGI;;
+High Five;;1FKBqHi4KfalNI_16IyuHRJq1Rn4yZf4A0tUWCS9S68Y;;
+InsaLan;;1OrJAlJIHmW01nB5lPjwzGx-pgz3h5tZ2lTJ0WD_Vk3k;;
+K-Fet;;1xLpALEfhaPa4kKIiQXWNVqJZmKvZoS3n5x2stcn1Fxw;;
+Robot;;1my6CEEHRhq1yOyQenwqinjGSCpMTu10dZySSdRKP99U;;
+RNS;;1_yfxZqDBdrMU-nqrABmJapWePvo8pT5edK8Ss-2hyxU;;
+S et L;;1-RzQ9FLenyGBOacXd3jM3jVkuTIitVUz_mdM3FZd8Ag;;
+UDS;;1-pCxX-LA0uMHLfEjdZDUGAx4gApIfNMMO01Hq8jG2WU;;
+WEI;;1PHN1hNgCcVi47kEffgeS8uZ5Fm81P8WwRlhK-5QWVAE;;
+WEIPA;;1ROmX10B8RWekkAApmxEWfrNW9-ahsIbrNn0nXE51gXg;;

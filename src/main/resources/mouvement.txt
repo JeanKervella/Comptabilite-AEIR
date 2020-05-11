@@ -1,0 +1,8 @@
+##Transfert
+##Section	Dos
+EUR
+##Section	Mvt
+"9"	"HAINS"	"25/02/2020"	"60000000"	"Achats"	"190,01"	D	B	"ND4J : Déco Victor"		"10"			"AEI"	"Amicale des éléves des INSA"
+"9"	"HAINS"	"25/02/2020"	"40000000"	"Fournisseurs et comptes rattaches"	"190,01"	C	B	"ND4J : Déco Victor"		"10"		"25/02/2020"
+"10"	"BQINS1"	"25/02/2020"	"40000000"	"Fournisseurs et comptes rattaches"	"190,01"	D	B	"ND4J : Déco Victor"		"6"	"VIR"	"25/02/2020"	"AEI"	"Amicale des éléves des INSA"
+"10"	"BQINS1"	"25/02/2020"	"51210910"	"Insalan"	"190,01"	C	B	"ND4J : Déco Victor"		"6"	"VIR"	"25/02/2020"

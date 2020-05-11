@@ -1,0 +1,2 @@
+##Section	Tiers
+"40000000"	"Fournisseurs et comptes rattaches"	"SR"

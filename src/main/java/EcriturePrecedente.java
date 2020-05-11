@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
@@ -35,8 +36,11 @@ public class EcriturePrecedente implements ActionListener {
 			SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][10] = ".";
 			SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][11] = ".";
 			SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][12] = ".";
+			SheetsQuickstart.selected[SheetsQuickstart.numeroLigne][13] = ".";
 			SheetsQuickstart.updateEcriture();
 			System.out.println(SheetsQuickstart.toStringSelected());
+			((JProgressBar) SheetsQuickstart.components.get(17))
+			.setValue(((JProgressBar) SheetsQuickstart.components.get(17)).getValue() - 1);
 			}else { 
 				JOptionPane.showMessageDialog(null,
 						"Il n'y a eu aucune ecriture d'ecrite auparavant",
